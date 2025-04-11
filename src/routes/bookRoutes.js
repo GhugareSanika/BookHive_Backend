@@ -7,7 +7,14 @@ const router = express.Router();
 
 router.post("/", protectRoute, async (req, res) => {
   try {
+    console.log("Hit the request");
     const { title, caption, rating, image } = req.body;
+    console.log("Received data:", {
+      title,
+      caption,
+      rating,
+      image: image?.substring(0, 60),
+    });
 
     if (!image || !title || !caption || !rating) {
       return res.status(400).json({ message: "Please provide all feilds" });
@@ -15,6 +22,8 @@ router.post("/", protectRoute, async (req, res) => {
 
     //upload the image to cloudinary
     const uploadResponse = await cloudinary.uploader.upload(image);
+    console.log("Cloudinary Upload Response:", uploadResponse);
+
     const imageUrl = uploadResponse.secure_url;
 
     //save to database
@@ -37,15 +46,24 @@ router.post("/", protectRoute, async (req, res) => {
 //pagination
 router.get("/", protectRoute, async (req, res) => {
   try {
-    const page = req.query.page || 1;
-    const limit = req.query.limit || 5;
-    const skip = page - 1 - limit;
+    // const page = req.query.page || 1;
+    // const limit = req.query.limit || 5;
+    // const skip = page - 1 - limit;
 
-    const books = await Book.find();
-    sort({ createdAt: -1 })
+    // const books = await Book.find();
+    // sort({ createdAt: -1 })
+    //   .skip(skip)
+    //   .limit(limit)
+    //   .populate("user", "usermame profileImage"); //desc
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
+    const books = await Book.find()
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate("user", "usermame profileImage"); //desc
+      .populate("user", "username profileImage");
 
     const totalBooks = await Book.countDocuments();
     res.send({

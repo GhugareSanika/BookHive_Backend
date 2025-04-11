@@ -4,7 +4,12 @@ import User from "../models/User.js";
 
 const protectRoute = async (req, res, next) => {
   try {
-    const token = req.header("Authorization").replace("Bearer", "");
+    console.log("Entered in protect route");
+    // const token = req.header("Authorization").replace("Bearer","");
+    const token = req.header("Authorization")?.replace("Bearer ", "").trim();
+
+    console.log("Token received:", token);
+
     if (!token)
       return res
         .status(401)
@@ -15,10 +20,14 @@ const protectRoute = async (req, res, next) => {
 
     //find user
     const user = await User.findById(decoded.userId).select("-password");
+    console.log(user);
     if (!user) return res.status(401).json({ message: "Token is not valid" });
     req.user = user;
     next();
-  } catch (error) {}
+  } catch (error) {
+    console.error("Auth Middleware Error:", error.message);
+    return res.status(401).json({ message: "Unauthorized, invalid token" });
+  }
 };
 
 export default protectRoute;
