@@ -4,13 +4,21 @@ import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
 import { connetDB } from "./lib/db.js";
 import bookRoutes from "./routes/bookRoutes.js";
-import job from "./lib/cron.js";
+//import job from "./lib/cron.js";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-job.start();
+//job.start();
 app.use(express.json());
-app.use(cors());
+//app.use(cors());
+
+app.use(
+  cors({
+    origin: "*", // ✅ or replace with your frontend domain (e.g., "https://myapp.vercel.app")
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"], // ✅ important for tokens
+  })
+);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
